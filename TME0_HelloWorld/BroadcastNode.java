@@ -18,15 +18,17 @@ public class BroadcastNode extends Node {
     public void onSelection() {
         informed = true;
         setColor(Color.RED);
-        sendAll(new Message("My message"));
+        sendAll(new Message(this.getID()));
     }
 
     @Override
     public void onMessage(Message message) {
+        System.out.println("Node " + this.getID() + " got message: " + message.getContent());
+
         if (!informed) {
             informed = true;
             setColor(Color.RED);
-            sendAll(new Message(message.getContent()));
+            sendAll(new Message(this.getID()));
         }
     }
 }
