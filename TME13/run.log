@@ -1,0 +1,12 @@
+Buildfile: C:\Users\foste\Desktop\ANET_TIME13\TME13\build.xml
+
+init:
+
+compile:
+    [javac] C:\Users\foste\Desktop\ANET_TIME13\TME13\build.xml:15: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+
+run:
+     [echo] ================ Run Object Main ================
+
+BUILD SUCCESSFUL
+Total time: 3 seconds

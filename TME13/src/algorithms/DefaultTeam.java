@@ -28,7 +28,7 @@ public class DefaultTeam {
 
   private static final SearchMode MODE = SearchMode.GEOMETRIC_K3;
   private static final long LOCAL_SEARCH_TIME_LIMIT_MS = 1500;
-
+ 
   public ArrayList<Point> calculDominatingSet(ArrayList<Point> points, int edgeThreshold) {
     boolean readFromFile = false;
 
