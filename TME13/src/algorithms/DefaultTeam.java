@@ -38,7 +38,7 @@ public class DefaultTeam {
     // saveToFile("output",result);
     return switch (MODE) {
       case GREEDY -> greedy(points, edgeThreshold);
-      case NAIVE_LOCAL -> greedy(points, edgeThreshold); // placeholder (partner implementation expected)
+      case NAIVE_LOCAL -> naiveLocal(greedy(points, edgeThreshold), points, edgeThreshold);
       case GEOMETRIC_K3 -> geometricLocalSearchK3(points, edgeThreshold, LOCAL_SEARCH_TIME_LIMIT_MS);
       case CONVEX -> convexOptimizedSearch(points, edgeThreshold, LOCAL_SEARCH_TIME_LIMIT_MS);
     };
@@ -52,13 +52,45 @@ public class DefaultTeam {
 
     while (!isDominatingSet(result, points, edgeThreshold)) {
       Point nextPoint = highestDegree(remaining, edgeThreshold);
-      System.out.println("Taking point " + nextPoint + " with degree " + neighbors(nextPoint, points, edgeThreshold).size());
       result.add(nextPoint);
       remaining.remove(nextPoint);
       remaining.removeAll(neighbors(nextPoint, points, edgeThreshold));
     }
 
     return result;
+  }
+
+  // Attempt to refine an existing dominating set.
+  private static ArrayList<Point> naiveLocal(ArrayList<Point> ds, ArrayList<Point> points, int edgeThreshold) {
+    // Look for single points to remove
+    for (int i = 0; i < ds.size(); i++) {
+      ArrayList<Point> testDs = new ArrayList<Point>(ds);
+      testDs.remove(i);
+
+      if (isDominatingSet(testDs, points, edgeThreshold)) {
+        return testDs;
+      }
+    }
+
+    // Look for 2 points to remove and 1 point to add back
+    for (int i = 0; i < ds.size() - 1; i++) {
+      for (int j = i; j < ds.size(); j++) {
+        for (Point pAdd : points) {
+          if (ds.contains(pAdd)) continue;
+
+          ArrayList<Point> testDs = new ArrayList<Point>(ds);
+          testDs.remove(i);
+          testDs.remove(j);
+          testDs.add(pAdd);
+
+          if (isDominatingSet(testDs, points, edgeThreshold)) {
+            return testDs;
+          }
+        }
+      }
+    }
+
+    return ds;
   }
 
   private static Point highestDegree(ArrayList<Point> points, int edgeThreshold) {
