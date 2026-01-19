@@ -46,9 +46,11 @@ public class Robot extends Node{
 
 	// Start the simulation
 	public static void main(String[] args){
+		int width = 800;
+		int height = 400;
 
 		// Create the Topology (a plane of size 800x400)
-		Topology tp = new Topology(800, 400);
+		Topology tp = new Topology(width, height);
 		// Create the simulation window
 		new JViewer(tp);
 
@@ -63,9 +65,12 @@ public class Robot extends Node{
 		// Here we remove the sensing range since the robots have unlimited visibility
 		tp.setSensingRange(0);
 
-		// Add NB Robots to the topology (with random positions)
+		double startX = Math.random() * width;
+		double startY = Math.random() * height;
+
+		// Add NB Robots to the topology (all with same position)
 		for (int i = 0; i < NB; i++)
-			tp.addNode(-1,-1);
+			tp.addNode(startX, startY);
 
 		//The clock click every 0.5 sec (so that you can see the evolution slowly)
 		tp.setTimeUnit(500);
