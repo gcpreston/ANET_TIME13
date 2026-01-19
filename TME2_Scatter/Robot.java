@@ -9,7 +9,8 @@ import java.util.Random;
 
 public class Robot extends Node{
 
-	ArrayList<Point> locations;
+	// ArrayList<Point> locations;
+	int myMultiplicity;
 	Point target;
 
 	static int NB = 40; // Number of robots
@@ -18,27 +19,33 @@ public class Robot extends Node{
 
 	@Override
 	public void onPreClock() {
-		locations = new ArrayList<Point>();
-		for (Node node : getTopology().getNodes() )
-		{
-			locations.add(node.getLocation());
-		}
-	}
+		// locations = new ArrayList<Point>();
+		// for (Node node : getTopology().getNodes() )
+		// {
+		// 	locations.add(node.getLocation());
+		// }
 
-	@Override
-	public void onClock(){
-		target = locations.get(0);
-		for(Point r : locations)
-		{
-			if(r.getX() > target.getX() || (r.getX() == target.getX() && r.getY() > target.getY()))
-			{
-				target = r;
+		for (Node node : getTopology().getNodes()) {
+			if (distance(node) < 5) {
+				myMultiplicity++;
 			}
 		}
 	}
 
 	@Override
-	public void onPostClock(){
+	public void onClock() {
+		// target = locations.get(0);
+		// for(Point r : locations)
+		// {
+		// 	if(r.getX() > target.getX() || (r.getX() == target.getX() && r.getY() > target.getY()))
+		// 	{
+		// 		target = r;
+		// 	}
+		// }
+	}
+
+	@Override
+	public void onPostClock() {
 		setDirection(target);
 		move(Math.min(10, distance(target)));
 	}
