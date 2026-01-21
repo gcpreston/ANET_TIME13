@@ -1,5 +1,10 @@
 # Report: TME1 - DTN
 
+Students:
+Graham PRESTON
+Foster ELLIS
+
+
 **Question 1:** looking at the result of the simulation and at the implementation of the WayPointNode, describe the random waypoint mobility model.
 
 Nodes move according to the following rule:
