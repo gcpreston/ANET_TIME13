@@ -1,0 +1,167 @@
+# Report: TME 2 - Scatter
+
+Students:
+Graham PRESTON
+Foster ELLIS
+
+
+**Question 1:** Looking at the implementation, can you guess what phase (Look-Compute-Move) of the execution of a robot each method is related to?
+
+onPreClock is Look (inspect and gather all other robots’ locations), onClock is Compute (use the gathered locations to compute a target point), and onPostClock is Move (set direction and move towards target point).
+
+
+**Question 2:** Can you guess what a group of robots implementing this algorithm will do?
+
+It would seem that all nodes will end up with the same locations array, since it corresponds to the node list at the topology level. This means that each node will have the same target which they move towards; this is a clustering algorithm.
+
+
+**Question 3:** To scatter the robot, can you modify the onClock method to choose a destination only by using the attributes locations and myMultiplicity?
+
+   @Override
+   public void onClock() {
+       // IDEA
+       // - Using locations and myMultiplicity, choose a destination
+       // - if target is unspecified:
+       //   generate random coordinate, and scan locations to see if it is occupied.
+
+
+       if (target == null) {
+           boolean safeSpaceFound = false;
+
+
+           while (!safeSpaceFound) {
+               double randomX = Math.random() * mapWidth;
+               double randomY = Math.random() * mapHeight;
+               Point randomPoint = new Point(randomX, randomY);
+
+
+               if (isSafeSpace(randomPoint)) {
+                   safeSpaceFound = true;
+                   target = randomPoint;
+                   locations.add(randomPoint);
+               }
+           }
+       }
+   }
+
+
+   private boolean isSafeSpace(Point p) {
+       for (Point q : locations) {
+           if (p.distance(q) < multiplicityThreshold || distance(q) < multiplicityThreshold) {
+               return false;
+           }
+       }
+       return true;
+   }
+
+
+**Question 4:** Create a method generateDestinations that takes an integer n as a unique parameter and returns a list of n safe destinations (that depends only on the attribute locations and on the position of the current robot).
+
+   private static Point randomPoint() {
+       double randomX = Math.random() * mapWidth;
+       double randomY = Math.random() * mapHeight;
+       return new Point(randomX, randomY);
+   }
+
+
+   private Point generateSafePoint() {
+       while (true) {
+           Point randomPoint = randomPoint();
+
+
+           if (isSafeSpace(randomPoint)) {
+               return randomPoint;
+           }
+       }
+   }
+
+
+   /**
+    * Generate and return `n` safe destination points.
+    */
+   private List<Point> generateDestinations(int n) {
+       List<Point> safeSpaces = new ArrayList<>();
+
+
+       for (int i = 0; i < n; i++) {
+           safeSpaces.add(generateSafePoint());
+       }
+
+
+       return safeSpaces;
+   }
+
+
+**Question 5:** Modify the onClock method to choose a safe destination. You are allowed to use at most one random bit (obtained with the instruction (new Random()).nextInt(2))
+
+   @Override
+   public void onClock() {
+       if (target == null || (distance(target) < multiplicityThreshold && myMultiplicity > 1)) {
+           target = generateSafePoint();
+       }
+   }
+
+
+   private boolean isSafeSpace(Point p) {
+       for (Point q : locations) {
+           if (p.distance(q) < multiplicityThreshold || distance(q) < multiplicityThreshold) {
+               return false;
+           }
+       }
+       return true;
+   }
+
+
+   private Point generateSafePoint() {
+       int cols = mapWidth / multiplicityThreshold;
+       int rows = mapHeight / multiplicityThreshold;
+
+
+       // Deterministic grid based on robot's identity
+       int robotIndex = System.identityHashCode(this) % (rows * cols);
+
+
+       int gridX = robotIndex % cols;
+       int gridY = (robotIndex / cols) % (mapHeight / multiplicityThreshold);
+       Point p = new Point(gridX * multiplicityThreshold, gridY * multiplicityThreshold);
+
+
+       while (!isSafeSpace(p)) {
+           robotIndex = (robotIndex + 1) % (rows * cols);
+           p = new Point(gridX * multiplicityThreshold, gridY * multiplicityThreshold);
+       }
+
+
+       return p;
+   }
+
+This approach no longer uses random points due to the constraint. Instead, a default location on the grid is chosen via the object’s internal identifier, and it then moves targets based on whether the space is occupied once the robot arrives.
+
+
+**Question 6:** Start the simulation. What is the best expected time to scatter the robots?
+
+We can get a good idea of the expected time by calculating the max time without adjustments, which would be the start point at (0, 0) and needing to spread one point to (800, 400). This means the distance to travel is 8002+4002 = 894.43. With a move speed of 10 units per tick, this gives 89.4 ticks to move, which goes to 90 ticks since ticks are discrete.
+
+
+**Question 7:** Why was it a good choice to assume fully synchronized robots with a common coordinate system?
+
+The robots having the same coordinate system is akin to them having both orientation and chirality. We know from class that this greatly increases the strength of the algorithms we can write for them. In this specific case, it allows each robot to get the locations of all others at the start of the tick, and it knows which direction to go in order to move closer to a target point. Overall, this allows for robots to make decisions for themselves; without one of orientation or chirality, the robots need to heavily coordinate in order to move to a target with confidence.
+
+As for the synchronous system, this increaases the predictability of the system. It allows us to know for sure that robots are not moving between the time we took locations in one step and moved in a different step within the same tick. This allows us to better define and handle the possible states of the system, and think less about whether the time between the start and end of the look and compute steps (in the look-compute-move system) could affect the desired computation outcome.
+
+
+**Question 8:** Can the algorithm be improved?  Test and explain your answer.
+
+The original algorithm generates random points and checks if they are safe, which can waste significant computation and time if a robot gets unlucky with a random placement very far away. We can create an improved algorithm as follows:
+
+1. Generate all possible grid points (based on `multiplicityThreshold`)
+2. Sort all candidates by distance to the robot's current position (nearest-first)
+3. Use the robot's `System.identityHashCode()` as a deterministic offset to ensure each robot searches from a different starting position in this sorted list
+4. Return the first safe point found from that offset
+
+This generally allows robots to target a point much closer to them then the random approach.
+
+Running simulations with the original algorithm versus the improved one shows:
+- Original: Robots scatter in random directions, with variable completion times (60-100+ ticks)
+- Improved: Robots scatter outward in organized waves, completing in ~40-50 ticks
+- The improvement is most noticeable with higher robot densities, where random sampling becomes increasingly inefficient

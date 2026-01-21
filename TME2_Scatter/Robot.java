@@ -24,6 +24,8 @@ public class Robot extends Node {
 
 	@Override
 	public void onPreClock() {
+		myMultiplicity = 0;
+		locations.clear();
 		for (Node node : getTopology().getNodes()) {
 			if (distance(node) < multiplicityThreshold) {
 				myMultiplicity++;
@@ -36,7 +38,7 @@ public class Robot extends Node {
 	@Override
 	public void onClock() {
 		if (target == null || (distance(target) < multiplicityThreshold && myMultiplicity > 1)) {
-			target = generateSafePoint();
+			target = generateSafePointIdOffset();
 		}
 	}
 
@@ -66,6 +68,32 @@ public class Robot extends Node {
 		}
 
 		return p;
+	}
+
+	private Point generateSafePointIdOffset() {
+		int cols = mapWidth / multiplicityThreshold;
+		int rows = mapHeight / multiplicityThreshold;
+
+		List<Point> candidates = new ArrayList<>();
+		for (int i = 0; i < cols; i++) {
+			for (int j = 0; j < rows; j++) {
+				candidates.add(new Point(i * multiplicityThreshold, j * multiplicityThreshold));
+			}
+		}
+
+		candidates.sort((a, b) -> Double.compare(distance(a), distance(b)));
+
+		// Use robot's identity to pick a unique offset
+		int offset = System.identityHashCode(this) % candidates.size();
+
+		// Search from offset position
+		for (int i = 0; i < candidates.size(); i++) {
+			Point p = candidates.get((i + offset) % candidates.size());
+			if (isSafeSpace(p)) {
+				return p;
+			}
+		}
+		return candidates.get(offset);
 	}
 
 	/**
