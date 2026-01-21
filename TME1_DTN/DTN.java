@@ -13,10 +13,10 @@ public class DTN {
 		tp.addClockListener(new Stats(tp));
 		tp.setTimeUnit(1);
 		new JViewer(tp);
-		tp.setDefaultNodeModel(WayPointNode.class);
-		
+		tp.setDefaultNodeModel(AdvisedWayPointNode.class);
+
 		tp.addNode(300, 300, new SinkNode());
-		
+
 		for(int i = 0; i < 100; i++)
 		{
 			tp.addNode(-1, -1, new WayPointNode());

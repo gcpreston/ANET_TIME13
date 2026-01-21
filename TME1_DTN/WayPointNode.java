@@ -21,7 +21,7 @@ public class WayPointNode extends Node {
 
 	private boolean doWeTransmitToNode(Node node)
 	{
-		return (false);
+		return true;
 
 	}
 
@@ -44,7 +44,7 @@ public class WayPointNode extends Node {
                 	nbTransmission++;
                 	break;
                 }
-            } 
+            }
         }
 
 
@@ -59,7 +59,7 @@ public class WayPointNode extends Node {
 	}
 
 	public void onPreClock() {
-		
+
 		setDirection(destination);
 		if (distance(destination) > step)
 			move(step);

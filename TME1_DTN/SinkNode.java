@@ -13,7 +13,7 @@ public class SinkNode extends Node {
 		this.setProperty("sink", true);
 		this.setProperty("distanceToSink", 0.0);
 		this.setCommunicationRange(30);
-        this.setColor(Color.blue);
+		this.setColor(Color.blue);
 
 	}
 

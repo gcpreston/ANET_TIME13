@@ -23,7 +23,7 @@ public class AdvisedWayPointNode extends Node{
 		this.traveledDistance = 0.0;
 		this.distanceToSink = 0.0;
 		this.setProperty("distanceToSink", 0.0);
-                this.setColor(Color.green);
+        this.setColor(Color.green);
 		this.setCommunicationRange(30);
 		this.destinations.clear();
 		this.computeDestinations();
@@ -34,7 +34,7 @@ public class AdvisedWayPointNode extends Node{
 
 	private boolean doWeTransmitToNode(Node node)
 	{
-		return(false);
+		return true;
 	}
 
 

@@ -1,0 +1,102 @@
+# Report: TME1 - DTN
+
+**Question 1:** looking at the result of the simulation and at the implementation of the WayPointNode, describe the random waypoint mobility model.
+
+Nodes move according to the following rule:
+- Select a random point on the map to move towards
+- Each tick, move `step` units closer to this point
+- Once the point is reached, select a new random point and repeat
+
+
+**Question 2:** Implement the simplest solution that consist in transmitting the data **only to the sink node**.
+
+   private boolean doWeTransmitToNode(Node node) {
+       return (boolean)node.getProperty("sink");
+   }
+
+
+**Question 3:** look at the result of the previous solution. Propose and implement a better solution.
+
+With the above solution, each node needs to pass by the sink in order to get the data. It would be more convenient if nodes could aggregate their data between themselves, and then only one node would have to pass by the sink:
+
+   private boolean doWeTransmitToNode(Node node) {
+       return true;
+   }
+
+The above code implements the expected behavior because in onClock, we already only attempt to send to neighboring nodes which have data, meaning each green node has an aggregate and each red node has sent their data already.
+
+
+**Question 4:** How you can use the property `distanceToSink` to improve the data aggregation time.
+
+Assuming we can only generate a random destination point, we can use `distanceToSink` to see if we should generate a new destination early. This can be done by checking if continuing to move in the same direction would make us move further from the sink. If so, we can simply regenerate the target point.
+
+This algorithm has an added benefit of continuously shrinking the distance to the sink. If we are moving in a direction away from the sink based on the current position, we regenerate the target rather than continuing on the path, therefore the sink only gets closer and closer. This allows us to not rely on luck for the final robot to get to the sink.
+
+**Question 5:** how can you improve again your algorithm.
+
+The algorithm could be further improved with other heuristics directing robots towards the sink node. For example, when two robots cross paths, rather than arbitrarily aggregating the data on to one of the two, we could aggregate intentionally on the robot going most in the direction of the sink, maybe based on the amount by which the projected distance to the sink would shrink on the next step for each node.
+
+
+**Question 6:** use the Stats class to record the evolution of the number of nodes that have transmitted (i.e. the number of aggregated data) over the time.
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+
+
+import io.jbotsim.core.event.*;
+import io.jbotsim.core.*;
+
+
+public class Stats implements ClockListener {
+
+
+   private Topology tp;
+   private List<Integer> transmissions;
+
+
+   public Stats(Topology tp) {
+       this.tp = tp;
+       this.transmissions = new ArrayList<Integer>();
+   }
+
+
+   @Override
+   public void onClock() {
+       List<Node> nodes = tp.getNodes();
+       int transmissionCount = 0;
+
+
+       for (Node node : nodes) {
+           if (!(boolean)node.getProperty("data")) {
+               transmissionCount++;
+           }
+       }
+
+
+       this.transmissions.add(transmissionCount);
+
+
+       // Print if the value changed
+       if (this.transmissions.size() > 1) {
+           int prevTransmissionCount = this.transmissions.get(this.transmissions.size() - 2);
+
+
+           if (transmissionCount != prevTransmissionCount) {
+               System.out.println("Updated transmission count on tick " + tp.getTime() + ": " + transmissionCount);
+           }
+       }
+   }
+}
+
+Example output:
+Updated transmission count on tick 1: 45
+Updated transmission count on tick 3: 46
+Updated transmission count on tick 13: 47
+Updated transmission count on tick 14: 48
+Updated transmission count on tick 18: 49
+Updated transmission count on tick 19: 51
+Updated transmission count on tick 27: 52
+Updated transmission count on tick 30: 53
+Updated transmission count on tick 34: 54
+...
